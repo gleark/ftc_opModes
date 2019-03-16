@@ -23,10 +23,10 @@ import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
 
 public class Drive_Encode_Imu extends LinearOpMode {
 
-    static final double DRIVEPOWER   =  0.4;
+    static final double DRIVEPOWER   =  0.7;
     static final double TURNPOWER    =  0.3;
-    static final int    TURNCORR     =    1; //degrees corr, pos over, neg under
-    static final int    ENCODE_PPR   = 1440; //NeverRest 40 280 pulse per revolution (ppr)
+    static final int    TURNCORR     =   +9; //degrees corr, pos corrects for oversteer, neg for under
+    static final double ENCODE_PPR   = 1020; //NeverRest 40 280 pulse per revolution (ppr)
     static final double WHEEL_CIRCUM = 31.4; // 10cm diameter ~ 31.42 cm/rev
 
     DcMotor leftMotor;
@@ -94,18 +94,18 @@ public class Drive_Encode_Imu extends LinearOpMode {
         while (opModeIsActive()) {
 
             // Use gyro to drive in a straight line for dist
-            straight(5 * WHEEL_CIRCUM, DRIVEPOWER);
-            sleep(1000);
-//            rotate(90,  TURNPOWER);
-            straight(5 * WHEEL_CIRCUM, DRIVEPOWER);
-            sleep(1000);
-//            rotate(90,  TURNPOWER);
-            straight(5 * WHEEL_CIRCUM, DRIVEPOWER);
-            sleep(1000);
-//            rotate(+90, TURNPOWER);
-            straight(5 * WHEEL_CIRCUM, DRIVEPOWER);
-            sleep(1000);
-//            rotate(+90, TURNPOWER);
+            straight(5.0 * WHEEL_CIRCUM, DRIVEPOWER);
+            sleep(250);
+            rotate(90,  TURNPOWER);
+            straight(5.0 * WHEEL_CIRCUM, DRIVEPOWER);
+            sleep(250);
+            rotate(90,  TURNPOWER);
+            straight(5.0 * WHEEL_CIRCUM, DRIVEPOWER);
+            sleep(250);
+            rotate(+90, TURNPOWER);
+            straight(5.0 * WHEEL_CIRCUM, DRIVEPOWER);
+            sleep(250);
+            rotate(+90, TURNPOWER);
 
         }
 
@@ -187,39 +187,36 @@ public class Drive_Encode_Imu extends LinearOpMode {
      */
 
     private void straight(double dist, double power) {
-        int currentLeftEnc = leftMotor.getCurrentPosition();
+        int currentLeftEnc  = leftMotor.getCurrentPosition();
         int currentRightEnc = rightMotor.getCurrentPosition();
 
-        int targetLeftEnc = currentLeftEnc + calcPPR(50.0);
-        int targetRightEnc = currentRightEnc + calcPPR(50.);
+        int targetLeftEnc  = currentLeftEnc + calcPPR(dist);
+        int targetRightEnc = currentRightEnc + calcPPR(dist);
 
-        while (currentLeftEnc < targetLeftEnc && currentRightEnc < targetRightEnc && opModeIsActive()) {
+//        while (currentLeftEnc < targetLeftEnc && currentRightEnc < targetRightEnc && opModeIsActive()) {
+        while (currentRightEnc < targetRightEnc && opModeIsActive()) {
 
             correction = checkDirection();
             leftMotor.setPower(-DRIVEPOWER + correction);
             rightMotor.setPower(-DRIVEPOWER - correction);
 
-            currentLeftEnc = leftMotor.getCurrentPosition();  // update enc reading
+            currentLeftEnc  = leftMotor.getCurrentPosition();  // update enc reading
             currentRightEnc = rightMotor.getCurrentPosition();
 
             telemetry.addData("1 imu heading", lastAngles.firstAngle);
             telemetry.addData("2 global heading", globalAngle);
             telemetry.addData("3 correction", correction);
             telemetry.addData("4 left enc", currentLeftEnc);
+            telemetry.addData("5 right enc", currentRightEnc);
             telemetry.update();
 
             sleep(100);
 
         }
 
+        sleep(100);
         leftMotor.setPower(0);
         rightMotor.setPower(0);
-        leftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        rightMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        leftMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        rightMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-        sleep(100);
-
 
     }
 
